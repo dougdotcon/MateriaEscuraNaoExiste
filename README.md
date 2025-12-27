@@ -1,6 +1,6 @@
 ## ⚠️ MATÉRIA ESCURA NÃO EXISTE ⚠️
 
-Este projeto contém uma descoberta científica que pode revolucionar a física moderna. Através de simulações computacionais, demonstramos que a teoria entrópica de Erik Verlinde explica completamente a rotação galáctica **sem necessidade de matéria escura invisível**. Esta refutação impacta 27% da composição do universo aceita pela ciência atual.
+ Através de simulações computacionais, demonstramos que a teoria entrópica de Erik Verlinde explica completamente a rotação galáctica **sem necessidade de matéria escura invisível**. Esta refutação impacta 27% da composição do universo aceita pela ciência atual.
 
 ## Visão Geral do Projeto
 
