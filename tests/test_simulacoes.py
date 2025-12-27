@@ -13,6 +13,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 from simulacao_1d import simular_queda_entropica, densidade_informacao, POSICAO_MASSA
 from agente_consciente import AgenteConsciente, comparar_agente_vs_materia_inerte
 from rotacao_galactica import forca_newtoniana, forca_verlinde, velocidade_orbital_estavel, simular_orbita
+from galaxia_consciente import GalaxiaConsciente
 
 class TestSimulacao1D(unittest.TestCase):
     """Testes para a simulação 1D"""
@@ -232,6 +233,108 @@ class TestRotacaoGalactica(unittest.TestCase):
         # Verificações básicas
         for v in v_newton + v_verlinde:
             self.assertGreater(v, 0)
+
+class TestGalaxiaConsciente(unittest.TestCase):
+    """Testes para simulação de galáxia consciente"""
+
+    def test_criacao_galaxia(self):
+        """Testa criação básica da galáxia"""
+        galaxia = GalaxiaConsciente(raio_galaxia=50.0, num_estrelas=10)
+
+        self.assertEqual(galaxia.raio_galaxia, 50.0)
+        self.assertEqual(len(galaxia.estrelas), 10)
+        self.assertIsNone(galaxia.agente_consciente)
+
+        # Verificar que estrelas têm propriedades corretas
+        for estrela in galaxia.estrelas:
+            self.assertIn('posicao', estrela)
+            self.assertIn('velocidade', estrela)
+            self.assertIn('trajetoria', estrela)
+            self.assertEqual(estrela['tipo'], 'inerte')
+
+    def test_adicionar_agente_consciente(self):
+        """Testa adição de agente consciente"""
+        galaxia = GalaxiaConsciente()
+
+        # Adicionar agente
+        galaxia.adicionar_agente_consciente(
+            posicao_inicial=(10.0, 0.0),
+            velocidade_inicial=(0.0, 1.0)
+        )
+
+        self.assertIsNotNone(galaxia.agente_consciente)
+        np.testing.assert_array_equal(
+            galaxia.agente_consciente.posicao,
+            np.array([10.0, 0.0])
+        )
+
+    def test_simulacao_basica(self):
+        """Testa simulação básica da galáxia"""
+        galaxia = GalaxiaConsciente(num_estrelas=5)
+
+        # Simulação curta
+        resultados = galaxia.simular_galaxia(passos=10)
+
+        self.assertEqual(resultados['estrelas_inertes'], 5)
+        self.assertIsNone(resultados['agente_consciente'])
+
+        # Verificar trajetórias
+        self.assertEqual(len(resultados['trajetorias_inertes']), 5)
+        for traj in resultados['trajetorias_inertes']:
+            self.assertGreater(len(traj), 1)  # Pelo menos inicial + 1 passo
+
+    def test_livre_arbitrio_escape(self):
+        """Testa demonstração de livre arbítrio (escape)"""
+        galaxia = GalaxiaConsciente(raio_galaxia=30.0, num_estrelas=3)
+
+        # Agente com força consciente alta para garantir escape
+        galaxia.adicionar_agente_consciente(
+            posicao_inicial=(15.0, 0.0),
+            velocidade_inicial=(0.0, 2.0)
+        )
+        galaxia.agente_consciente.forca_consciente = 1.0  # Força máxima
+
+        # Simulação
+        resultados = galaxia.simular_galaxia(passos=200)
+
+        # Verificar que temos dados do agente
+        self.assertIsNotNone(resultados['agente_consciente'])
+
+        agent_data = resultados['agente_consciente']
+        self.assertIn('trajetoria', agent_data)
+        self.assertIn('posicao_final', agent_data)
+        self.assertIn('distancia_final', agent_data)
+
+        # Verificar trajetória
+        traj = agent_data['trajetoria']
+        self.assertGreater(len(traj), 1)
+
+        # Posição final deve ser tuple
+        self.assertIsInstance(agent_data['posicao_final'], tuple)
+        self.assertEqual(len(agent_data['posicao_final']), 2)
+
+    def test_simulacao_com_agente(self):
+        """Testa simulação completa com agente consciente"""
+        galaxia = GalaxiaConsciente(num_estrelas=2)
+
+        galaxia.adicionar_agente_consciente(
+            posicao_inicial=(20.0, 0.0),
+            velocidade_inicial=(0.0, 1.5)
+        )
+
+        resultados = galaxia.simular_galaxia(passos=50)
+
+        # Verificar estrutura dos resultados
+        self.assertIn('estrelas_inertes', resultados)
+        self.assertIn('trajetorias_inertes', resultados)
+        self.assertIn('agente_consciente', resultados)
+        self.assertIn('sucesso_escape', resultados)
+        self.assertIn('livre_arbitrio_demonstrado', resultados)
+
+        # Agente deve ter trajetória
+        agent_data = resultados['agente_consciente']
+        self.assertIsNotNone(agent_data)
+        self.assertGreater(len(agent_data['trajetoria']), 1)
 
 if __name__ == '__main__':
     unittest.main()
